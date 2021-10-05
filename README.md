@@ -1,3 +1,7 @@
+## Run the setup
+
+./setup.sh
+
 ## Install hello world V1 first time.
 helm upgrade --install hello-world ./charts --values ./values/v1.yaml
 
