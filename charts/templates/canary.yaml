@@ -1,0 +1,59 @@
+apiVersion: flagger.app/v1beta1
+kind: Canary
+metadata:
+  name: {{ .Values.name }}
+spec:
+  # deployment reference
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Values.name }}
+  # the maximum time in seconds for the canary deployment
+  # to make progress before it is rollback (default 600s)
+  progressDeadlineSeconds: 60
+  # HPA reference (optional)
+  autoscalerRef:
+    apiVersion: autoscaling/v2beta2
+    kind: HorizontalPodAutoscaler
+    name: "{{ .Values.name }}"
+  service:
+    # service port number
+    port: 5000
+    # container port number or name (optional)
+    targetPort: 5000
+    # Istio gateways (optional)
+    gateways:
+    - public-gateway.default.svc.cluster.local
+    # Istio virtual service host names (optional)
+    hosts:
+    - helloworld.local
+    # Istio traffic policy (optional)
+    trafficPolicy:
+      tls:
+        # use ISTIO_MUTUAL when mTLS is enabled
+        mode: DISABLE
+#   skipAnalysis: true
+  analysis:
+    webhooks:
+      - name: load-test-health
+        type: rollout
+        url: http://flagger-loadtester.istio-system/
+        timeout: 5s
+        metadata:
+          type: cmd
+          cmd: "hey -z 1m -q 10 -c 2 -h2 http://{{ .Values.name }}-canary.svc.cluster.local:5000/hello"
+      - name: promotio-gate
+        type: confirm-promotion
+        url: http://flagger-loadtester.istio-system/gate/halt
+    # schedule interval (default 60s)
+    interval: 1m
+    # total number of iterations
+    iterations: 1
+    # max number of failed metric checks before rollback
+    threshold: 4
+    match:
+      - headers:
+          user-agent:
+            regex: "canary"
+  # deploy straight to production without
+  # the metrics and webhook checks

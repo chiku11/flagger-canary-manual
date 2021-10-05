@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    app: {{ .Values.name }}
+    version: {{ .Values.version }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.name }}
+      version: {{ .Values.version }}
+  template:
+    metadata:
+      annotations:
+          sidecar.istio.io/inject: "true"
+      labels:
+        app: {{ .Values.name }}
+        version: {{ .Values.version }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+      - name: {{ .Values.name }}
+        image: {{ .Values.image.repository }}
+        resources:
+          requests:
+            cpu: "100m"
+        imagePullPolicy: IfNotPresent #Always
+        ports:
+        - containerPort: 5000
