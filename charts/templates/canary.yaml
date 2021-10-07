@@ -41,10 +41,13 @@ spec:
         timeout: 5s
         metadata:
           type: cmd
-          cmd: "hey -z 1m -q 10 -c 2 -h2 http://{{ .Values.name }}-canary.svc.cluster.local:5000/hello"
+          cmd: "hey -z 1m -q 1 -c 1 -h2 http://{{ .Values.name }}-canary.svc.cluster.local:5000/hello"
       - name: promotio-gate
         type: confirm-promotion
         url: http://flagger-loadtester.istio-system/gate/halt
+      - name: "rollback"
+        type: rollback
+        url: http://flagger-loadtester.istio-system/rollback/check
     # schedule interval (default 60s)
     interval: 1m
     # total number of iterations

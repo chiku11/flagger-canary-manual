@@ -23,6 +23,19 @@ Hello version: v2, instance: helloworld-6b958d6685-qxva1
 
 ## Once satisified edit canaries
 change halt to approve
-kubectl patch canaries.flagger.app helloworld --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/1/url", "value":"http://flagger-loadtester.istio-system/gate/approve"}]'
+kubectl patch $(kubectl get canaries.flagger.app -o name) --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/1/url", "value":"http://flagger-loadtester.istio-system/gate/approve"}]'
 
 After few minutes all the traffic will be shifted to the new release.
+
+
+## If things go bad with canary
+
+Rollback
+
+kubectl -n istio-system exec -it $(kubectl -n istio-system get pods -l app=loadtester -o name) -- /bin/sh
+
+the below curl will rollback
+curl -d '{"name":"helloworld","namespace":"default"}' http://localhost:8080/rollback/open
+
+close once done
+curl -d '{"name":"helloworld","namespace":"default"}' http://localhost:8080/rollback/close
