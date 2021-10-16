@@ -14,6 +14,7 @@ spec:
   template:
     metadata:
       annotations:
+          timestamp: {{ now | date "2006-01-02T15:04:05" }}
           sidecar.istio.io/inject: "true"
       labels:
         app: {{ .Values.name }}
