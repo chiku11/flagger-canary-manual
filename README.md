@@ -1,7 +1,7 @@
 # ***Important***
 🚑 https://github.com/chiku11/flagger-canary-manual/blob/master/charts/templates/deployment.yaml#L17 🚑
 
-To make release unique you need annotate pod with timestamp temlpate. If not canary approval/rollback will not work if you retry same release.
+To make release unique you need to annotate pod with timestamp temlpate. If not canary approval/rollback will not work if you retry same release.
 
 
 
