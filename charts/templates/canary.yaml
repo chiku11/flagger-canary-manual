@@ -42,15 +42,18 @@ spec:
         metadata:
           type: cmd
           cmd: "hey -z 1m -q 1 -c 1 -h2 http://{{ .Values.name }}-canary.svc.cluster.local:5000/hello"
-      - name: promotio-gate
+      - name: promote-canary
         type: confirm-promotion
         url: http://flagger-loadtester.istio-system/gate/check
-      - name: close-gate
-        type: post-rollout
-        url: http://flagger-loadtester.istio-system/gate/close
-      - name: rollback
+      - name: rollback-canary
         type: rollback
         url: http://flagger-loadtester.istio-system/rollback/check
+      - name: close-promote-canary
+        type: post-rollout
+        url: http://flagger-loadtester.istio-system/gate/close
+      - name: close-rollback-canary
+        type: post-rollout
+        url: http://flagger-loadtester.istio-system/rollback/close
     # schedule interval (default 60s)
     interval: 1m
     # total number of iterations

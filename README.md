@@ -22,11 +22,28 @@ Hello version: v2, instance: helloworld-6b958d6685-qxva1
 
 
 ## Once satisified edit canaries
-change halt to approve
-kubectl patch $(kubectl get canaries.flagger.app -o name) --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/1/url", "value":"http://flagger-loadtester.istio-system/gate/approve"}]'
+Open the gate to approve:
+
+Suggested to use curl:
+kubectl -n istio-system exec -it $(kubectl -n istio-system get pods -l app=loadtester -o name) -- /bin/sh
+
+curl -d '{"name": "helloworld","namespace":"default"}' http://localhost:8080/gate/open
+curl -d '{"name": "helloworld","namespace":"default"}' http://localhost:8080/gate/approve
 
 After few minutes all the traffic will be shifted to the new release.
 
+curl -d '{"name": "helloworld","namespace":"default"}' http://localhost:8080/gate/check should say Forbidden. As the gates closes after promotion to avoid promotion of the future releases.
+
+
+Via Patch:
+
+Can also be done with Patch:
+
+kubectl patch canaries.flagger.app helloworld --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/1/url", "value":"http://flagger-loadtester.istio-system/gate/approve"}]'
+
+After few minutes change it check to avoid future releases from auto approval.
+
+kubectl patch canaries.flagger.app helloworld --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/1/url", "value":"http://flagger-loadtester.istio-system/gate/check"}]'
 
 ## If things go bad with canary
 
@@ -34,30 +51,21 @@ Rollback
 
 # option 1
 
+
+Suggested to use curl:
+kubectl -n istio-system exec -it $(kubectl -n istio-system get pods -l app=loadtester -o name) -- /bin/sh
+
+curl -d '{"name":"helloworld","namespace":"default"}' http://localhost:8080/rollback/open
+
+After few minutes the new release will be failed and rolled back.
+
+curl -d '{"name":"helloworld","namespace":"default"}' http://localhost:8080/rollback/check should say rollout closed. As the gate closes after rollback to avoid rollback for future releases.
+
+
+Via patch:
 kubectl patch $(kubectl get canaries.flagger.app -o name) --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/2/url", "value":"http://flagger-loadtester.istio-system/rollback/open"}]'
 
-Waiting couple of minutes and then close it
+After few minutes change it close to avoid future releases from auto approval.
 
 kubectl patch $(kubectl get canaries.flagger.app -o name) --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/2/url", "value":"http://flagger-loadtester.istio-system/rollback/close"}]'
 
-# option 2 
-kubectl -n istio-system exec -it $(kubectl -n istio-system get pods -l app=loadtester -o name) -- /bin/sh
-
-the below curl will rollback
-curl -d '{"name":"helloworld","namespace":"default"}' http://localhost:8080/rollback/open
-
-close once done
-curl -d '{"name":"helloworld","namespace":"default"}' http://localhost:8080/rollback/close
-
-
-# Updated options
-Rollback
-kubectl patch canaries.flagger.app helloworld --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/3/url", "value":"http://flagger-loadtester.istio-system/rollback/open"}]'
-
-kubectl patch canaries.flagger.app helloworld --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/3/url", "value":"http://flagger-loadtester.istio-system/rollback/check"}]'
-
-
-Promote
-kubectl patch canaries.flagger.app helloworld --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/1/url", "value":"http://flagger-loadtester.istio-system/gate/approve"}]'
-
-kubectl patch canaries.flagger.app helloworld --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/1/url", "value":"http://flagger-loadtester.istio-system/gate/check"}]'
