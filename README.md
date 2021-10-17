@@ -101,9 +101,12 @@ should say rollout ```Forbidden```. As the gate closes after rollback to avoid r
 
 ### Option 2 using PATCH:
 
+```
 kubectl patch $(kubectl get canaries.flagger.app -o name) --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/2/url", "value":"http://flagger-loadtester.istio-system/rollback/open"}]'
+```
 
 After few minutes change it close to avoid future releases from auto approval.
 
+```
 kubectl patch $(kubectl get canaries.flagger.app -o name) --type='json' -p='[{"op": "replace", "path": "/spec/analysis/webhooks/2/url", "value":"http://flagger-loadtester.istio-system/rollback/close"}]'
-
+```
