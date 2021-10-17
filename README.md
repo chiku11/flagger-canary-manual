@@ -1,4 +1,11 @@
-# Run the setup
+# ***Important***
+🚑 https://github.com/chiku11/flagger-canary-manual/blob/master/charts/templates/deployment.yaml#L17 🚑
+
+To make release unique you need annotate pod with timestamp temlpate. If not canary approval/rollback will not work if you retry same release.
+
+
+
+# ***Run the setup***
 
 ```
 ./setup.sh
@@ -16,7 +23,7 @@ helm upgrade --install hello-world ./charts --values ./values/v1.yaml
 helm upgrade --install hello-world ./charts --values ./values/v2.yaml
 ```
 
-# Testing
+# ***Testing***
 
 Go to browser and open the url and you will get response from v1 thats the primary.
 
